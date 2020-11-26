@@ -13,10 +13,6 @@ export const DataLengthsMc = {
 
 export class BinaryData extends BData {
 
-  public clone(): BinaryData {
-    return new BinaryData(this.toBuffer())
-  }
-
   public writeMagic(): void {
     const buf = Buffer.from(MAGIC, 'binary')
 
@@ -185,7 +181,7 @@ export class BinaryData extends BData {
     for(const animation of skin.animations) {
       this.writeSkinImage(animation.image)
       this.writeLInt(animation.type)
-      this.writeLFloat(animation.frames)
+      this.writeFloat(animation.frames)
       this.writeLInt(animation.expression)
     }
     this.writeSkinImage(skin.cape.image)
