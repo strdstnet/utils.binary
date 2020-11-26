@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@strdst/utils.binary": "^1.0.3",
+    "@strdst/utils.nbt": "^1.0.2",
     "uuid": "^8.3.0"
   }
 }
