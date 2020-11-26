@@ -1,9 +1,9 @@
 import {
-  BinaryData as BData, DataLengths as DLengths,
+  BinaryData as BData, DataLengths as DLengths, UUID,
 } from '@strdst/utils.binary'
 import { CompoundTag, IntTag } from '@strdst/utils.nbt'
 import { Metadata } from './Metadata'
-import { IItem, ItemIDs, ItemIsDurable, MAGIC, MetadataType } from './types'
+import { IItem, ItemIDs, ItemIsDurable, MAGIC, MetadataType, SkinData, SkinImage } from './types'
 
 export const DataLengthsMc = {
   ...DLengths,
@@ -167,6 +167,55 @@ export class BinaryData extends BData {
     }
 
     return metadata
+  }
+
+  public writeSkinImage(image: SkinImage): void {
+    this.writeLInt(image.width)
+    this.writeLInt(image.height)
+    // this.writeString(image.data)
+    this.appendWithLength(image.data)
+  }
+
+  public writeSkin(skin: SkinData): void {
+    this.writeString(skin.id)
+    // this.writeString(skin.resourcePatch)
+    this.appendWithLength(skin.resourcePatch)
+    this.writeSkinImage(skin.image)
+    this.writeLInt(skin.animations.length)
+    for(const animation of skin.animations) {
+      this.writeSkinImage(animation.image)
+      this.writeLInt(animation.type)
+      this.writeLFloat(animation.frames)
+      this.writeLInt(animation.expression)
+    }
+    this.writeSkinImage(skin.cape.image)
+    // this.writeString(skin.geometryData)
+    this.appendWithLength(skin.geometryData)
+    // this.writeString(skin.animationData)
+    this.appendWithLength(skin.animationData)
+    this.writeBoolean(skin.premium)
+    this.writeBoolean(skin.persona)
+    this.writeBoolean(skin.personaCapeOnClassic)
+    this.writeString(skin.cape.id)
+    this.writeString(UUID.randomStr())
+    this.writeString(skin.armSize)
+    this.writeString(skin.color)
+    this.writeLInt(skin.personaPieces.length)
+    for(const piece of skin.personaPieces) {
+      this.writeString(piece.id)
+      this.writeString(piece.type)
+      this.writeString(piece.packId)
+      this.writeBoolean(piece.defaultPiece)
+      this.writeString(piece.productId)
+    }
+    this.writeLInt(skin.personaPieceTints.length)
+    for(const tint of skin.personaPieceTints) {
+      this.writeString(tint.type)
+      this.writeLInt(tint.colors.length)
+      for(const color of tint.colors) {
+        this.writeString(color)
+      }
+    }
   }
 
 }
