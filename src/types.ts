@@ -2,7 +2,7 @@ import { CompoundTag } from '@strdst/utils.nbt'
 
 export const MAGIC = '\x00\xff\xff\x00\xfe\xfe\xfe\xfe\xfd\xfd\xfd\xfd\x12\x34\x56\x78'
 
-export const ItemIsDurable = Symbol('is durable')
+export const ItemIsDurable = '__durable'
 
 export interface IItem {
   [ItemIsDurable]: boolean,
