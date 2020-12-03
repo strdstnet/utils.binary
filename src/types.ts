@@ -18,8 +18,9 @@ export interface IItem {
     only those that are required for BinaryData methods
 */
 export enum ItemIDs {
-  AIR    = 0,
-  SHIELD = 513,
+  AIR          = 0,
+  UPDATE_BLOCK = 248,
+  SHIELD       = 513,
 }
 
 export enum MetadataType {
