@@ -1,9 +1,9 @@
 import {
-  BinaryData as BData, DataLengths as DLengths, UUID,
+  BinaryData as BData, DataLengths as DLengths, UUID, Vector3,
 } from '@strdst/utils.binary'
-import { CompoundTag, IntTag } from '@strdst/utils.nbt'
+import { CompoundTag, IntTag, StringTag } from '@strdst/utils.nbt'
 import { Metadata } from './Metadata'
-import { IChunk, IItem, ISubChunk, ItemIDs, ItemIsDurable, MAGIC, MetadataType, SkinData, SkinImage } from './types'
+import { IChunk, IItem, ISubChunk, ItemIDs, ItemIsDurable, MAGIC, MetadataType, SkinData, SkinImage, TileIsSpawnable } from './types'
 
 export const DataLengthsMc = {
   ...DLengths,
@@ -235,7 +235,6 @@ export class BinaryData extends BData {
 
     const nonEmptyCount = this.getLastNonEmtptySubChunk(chunk) + 1
     for(let y = 0; y < nonEmptyCount; y++) {
-    // for(let y = 0; y < 16; y++) {
       const subChunk = chunk.subChunks[y]
 
       data.writeByte(0) // Anvil version
@@ -249,8 +248,15 @@ export class BinaryData extends BData {
     this.writeUnsignedVarInt(data.length)
     this.append(data)
 
-    for(const tileTag of chunk.tileTags) {
-      this.writeTag(tileTag)
+    for(const tile of chunk.tiles) {
+      if(tile[TileIsSpawnable]) {
+        const tag = new CompoundTag()
+        tag.add(new StringTag().assign('id', tile.nid))
+        tag.add(new IntTag().assign('x', tile.pos.x))
+        tag.add(new IntTag().assign('y', tile.pos.y))
+        tag.add(new IntTag().assign('z', tile.pos.z))
+        this.writeTag(tag)
+      }
     }
   }
 
@@ -274,7 +280,13 @@ export class BinaryData extends BData {
     this.readByte() // Border block count - unused
 
     while(!this.feof) {
-      chunk.tileTags.push(this.readTag())
+      const tag = this.readTag<CompoundTag>()
+      chunk.tiles.push({
+        [TileIsSpawnable]: true,
+        id: -1,
+        nid: tag.val('id'),
+        pos: new Vector3(tag.val('x'), tag.val('y'), tag.val('z')),
+      })
     }
   }
 

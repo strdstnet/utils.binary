@@ -165,6 +165,6 @@ export interface IChunk {
   x: number,
   z: number,
   subChunks: ISubChunk[],
-  tileTags: CompoundTag[],
+  tiles: ITile[],
   biomeData: number[],
 }
