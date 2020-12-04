@@ -220,7 +220,7 @@ export class BinaryData extends BData {
       subChunk.blockLightData.every(v => v === 0)
   }
 
-  protected getLastNonEmtptySubChunk(chunk: IChunk): number {
+  public getLastNonEmtptySubChunk(chunk: IChunk): number {
     for(let y = chunk.subChunks.length - 1; y >= 0; y--) {
       if(this.subChunkEmpty(chunk.subChunks[y])) continue
 
