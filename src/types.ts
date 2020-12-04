@@ -1,3 +1,4 @@
+import { Vector3 } from '@strdst/utils.binary'
 import { CompoundTag } from '@strdst/utils.nbt'
 
 export const MAGIC = '\x00\xff\xff\x00\xfe\xfe\xfe\xfe\xfd\xfd\xfd\xfd\x12\x34\x56\x78'
@@ -142,4 +143,28 @@ export interface SkinData {
   personaPieces: PersonaPiece[],
   personaPieceTints: PersonaPieceTint[],
   verified: boolean,
+}
+
+export const TileIsSpawnable = '__spawnable'
+
+export interface ITile {
+  [TileIsSpawnable]: boolean,
+  id: number,
+  nid: string,
+  pos: Vector3,
+}
+
+export interface ISubChunk {
+  metadata: number[],
+  blockIds: number[],
+  skyLightData: number[],
+  blockLightData: number[],
+}
+
+export interface IChunk {
+  x: number,
+  z: number,
+  subChunks: ISubChunk[],
+  tileTags: CompoundTag[],
+  biomeData: number[],
 }

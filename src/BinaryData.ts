@@ -3,7 +3,7 @@ import {
 } from '@strdst/utils.binary'
 import { CompoundTag, IntTag } from '@strdst/utils.nbt'
 import { Metadata } from './Metadata'
-import { IItem, ItemIDs, ItemIsDurable, MAGIC, MetadataType, SkinData, SkinImage } from './types'
+import { IChunk, IItem, ISubChunk, ItemIDs, ItemIsDurable, MAGIC, MetadataType, SkinData, SkinImage } from './types'
 
 export const DataLengthsMc = {
   ...DLengths,
@@ -211,6 +211,70 @@ export class BinaryData extends BData {
       for(const color of tint.colors) {
         this.writeString(color)
       }
+    }
+  }
+
+  public subChunkEmpty(subChunk: ISubChunk): boolean {
+    return subChunk.blockIds.every(v => v === 0) &&
+      subChunk.skyLightData.every(v => v === 255) &&
+      subChunk.blockLightData.every(v => v === 0)
+  }
+
+  protected getLastNonEmtptySubChunk(chunk: IChunk): number {
+    for(let y = chunk.subChunks.length - 1; y >= 0; y--) {
+      if(this.subChunkEmpty(chunk.subChunks[y])) continue
+
+      return y
+    }
+
+    return -1
+  }
+
+  public writeChunkData(chunk: IChunk): void {
+    const data = new BinaryData()
+
+    const nonEmptyCount = this.getLastNonEmtptySubChunk(chunk) + 1
+    for(let y = 0; y < nonEmptyCount; y++) {
+    // for(let y = 0; y < 16; y++) {
+      const subChunk = chunk.subChunks[y]
+
+      data.writeByte(0) // Anvil version
+      data.append(new Uint8Array(subChunk.blockIds))
+      data.append(new Uint8Array(subChunk.metadata))
+    }
+
+    data.append(new Uint8Array(chunk.biomeData))
+    data.writeByte(0) // Border block count - unused
+
+    this.writeUnsignedVarInt(data.length)
+    this.append(data)
+
+    for(const tileTag of chunk.tileTags) {
+      this.writeTag(tileTag)
+    }
+  }
+
+  public readChunkData(chunk: IChunk, numSubChunks: number): void {
+    for(let y = 0; y < numSubChunks; y++) {
+      const version = this.readByte()
+
+      if(version === 0) {
+        chunk.subChunks[y] = {
+          blockIds: Array.from(this.read(4096)),
+          metadata: Array.from(this.read(2048)),
+          skyLightData: [],
+          blockLightData: [],
+        }
+      } else {
+        throw new Error(`Unsupported Anvil version: ${version}`)
+      }
+    }
+
+    chunk.biomeData = Array.from(this.read(256))
+    this.readByte() // Border block count - unused
+
+    while(!this.feof) {
+      chunk.tileTags.push(this.readTag())
     }
   }
 
