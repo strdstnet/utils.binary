@@ -1,5 +1,5 @@
 import { Vector3 } from '@strdst/utils.binary'
-import { CompoundTag } from '@strdst/utils.nbt'
+import { CompoundTag, IntTag, StringTag } from '@strdst/utils.nbt'
 
 export const MAGIC = '\x00\xff\xff\x00\xfe\xfe\xfe\xfe\xfd\xfd\xfd\xfd\x12\x34\x56\x78'
 
@@ -147,11 +147,20 @@ export interface SkinData {
 
 export const TileIsSpawnable = '__spawnable'
 
+export type TileTagProps = {
+  id: StringTag,
+  x: IntTag,
+  y: IntTag,
+  z: IntTag,
+}
+
+export type TileTag = CompoundTag<TileTagProps>
+
 export interface ITile {
   [TileIsSpawnable]: boolean,
-  id: number,
   nid: string,
   pos: Vector3,
+  tag: TileTag,
 }
 
 export interface ISubChunk {
