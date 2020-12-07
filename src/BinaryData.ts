@@ -1,9 +1,10 @@
 import {
   BinaryData as BData, DataLengths as DLengths, UUID, Vector3,
 } from '@strdst/utils.binary'
-import { CompoundTag, IntTag, StringTag } from '@strdst/utils.nbt'
+import { CompoundTag, IntTag } from '@strdst/utils.nbt'
+import { ItemRuntimes } from './data/ItemRuntimes'
 import { Metadata } from './Metadata'
-import { IChunk, IItem, ISubChunk, ItemIDs, ItemIsDurable, MAGIC, MetadataType, SkinData, SkinImage, TileIsSpawnable, TileTag } from './types'
+import { IChunk, IExperiments, IItem, ISubChunk, ItemIsDurable, MAGIC, MetadataType, Namespaced, SkinData, SkinImage, TileIsSpawnable, TileTag } from './types'
 
 export const DataLengthsMc = {
   ...DLengths,
@@ -31,8 +32,8 @@ export class BinaryData extends BData {
   }
 
   public writeContainerItem(item: IItem): void {
-    this.writeVarInt(item.id)
-    if(item.id === ItemIDs.AIR) return
+    this.writeVarInt(ItemRuntimes.getRID(item.nid))
+    if(item.nid === Namespaced.AIR) return
 
     const auxValue = ((item.meta & 0x7fff) << 8) | item.count
     this.writeVarInt(auxValue)
@@ -64,21 +65,24 @@ export class BinaryData extends BData {
     this.writeVarInt(0) // CanPlaceOn
     this.writeVarInt(0) // CanDestroy
 
-    if(item.id === ItemIDs.SHIELD) {
+    if(item.nid === Namespaced.SHIELD) {
       this.writeVarLong(0n) // blocking tick
     }
   }
 
   public readContainerItem(): IItem {
+    const rid = this.readVarInt()
+
     const item: IItem = {
-      id: this.readVarInt(),
+      nid: ItemRuntimes.getNID(rid),
+      rid,
       meta: 0,
       count: 1,
       [ItemIsDurable]: false,
       damage: 0,
     }
 
-    if(item.id === ItemIDs.AIR) return item
+    if(item.nid === Namespaced.AIR) return item
 
     const auxValue = this.readVarInt()
     item.meta = auxValue >> 8
@@ -98,7 +102,7 @@ export class BinaryData extends BData {
       this.readString() // CanDestroy
     }
 
-    if(item.id === ItemIDs.SHIELD) {
+    if(item.nid === Namespaced.SHIELD) {
       this.readVarLong() // blocking tick
     }
 
@@ -283,6 +287,34 @@ export class BinaryData extends BData {
         tag,
       })
     }
+  }
+
+  public writeExperiments(container: IExperiments): void {
+    this.writeLInt(container.experiments.length)
+    for(const { name, enabled } of container.experiments) {
+      this.writeString(name)
+      this.writeBoolean(enabled)
+    }
+
+    this.writeBoolean(container.previouslyEnabled)
+  }
+
+  public readExperiments(): IExperiments {
+    const count = this.readLInt()
+    const container: IExperiments = {
+      experiments: [],
+      previouslyEnabled: false,
+    }
+    for(let i = 0; i < count; i++) {
+      container.experiments.push({
+        name: this.readString(),
+        enabled: this.readBoolean()
+      })
+    }
+
+    container.previouslyEnabled = this.readBoolean()
+
+    return container
   }
 
 }

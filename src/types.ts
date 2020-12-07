@@ -7,21 +7,31 @@ export const ItemIsDurable = '__durable'
 
 export interface IItem {
   [ItemIsDurable]: boolean,
-  id: number,
+  nid: string,
+  rid: number,
   meta: number,
   count: number,
   nbt?: CompoundTag,
-  damage: number,
+  damage: number, // TODO: ehhhh, technically `damage` is always `meta`
 }
 
 /**
   @description This is not a full set of IDs but
     only those that are required for BinaryData methods
+  @deprecated Fixed item IDs are deprecated, use `nid`s instead
+    (ex. `minecraft:dirt`)
 */
 export enum ItemIDs {
   AIR          = 0,
   UPDATE_BLOCK = 248,
   SHIELD       = 513,
+}
+
+/** @description Fixed `nid`s required for BinaryData methods */
+export enum Namespaced {
+  AIR          = 'minecraft:air',
+  UPDATE_BLOCK = 'minecraft:info_update',
+  SHIELD       = 'minecraft:shield',
 }
 
 export enum MetadataType {
@@ -176,4 +186,14 @@ export interface IChunk {
   subChunks: ISubChunk[],
   tiles: ITile[],
   biomeData: number[],
+}
+
+export interface IExperiment {
+  name: string,
+  enabled: boolean,
+}
+
+export interface IExperiments {
+  experiments: IExperiment[],
+  previouslyEnabled: boolean,
 }
