@@ -2,6 +2,9 @@ import mapping from './item_mapping.json'
 
 export class ItemRuntimes {
 
+  public toRuntime = mapping.toRuntime
+  public toNamespaced = mapping.toNamespaced
+
   public static getNID(rid: number): string {
     const map = mapping.toNamespaced[rid]
 
