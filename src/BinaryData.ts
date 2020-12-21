@@ -88,7 +88,7 @@ export class BinaryData extends BData {
     item.meta = auxValue >> 8
     item.count = auxValue & 0xff
 
-    if(this.readLShort() === -1) {
+    if(this.readLShort() === 0xffff) {
       const nbtVersion = this.readByte()
 
       item.nbt = this.readTag<CompoundTag>(nbtVersion)
