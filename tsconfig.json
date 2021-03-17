@@ -1,5 +1,11 @@
 {
-  "extends": "@strdst/tsconfig/tsconfig.json",
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "outDir": "lib",
+    "declaration": true
+  },
   "include": ["src"],
   "exclude": ["**/*.test.ts"]
 }
