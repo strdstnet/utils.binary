@@ -16,7 +16,7 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '@strdstnet'
       - run: yarn set version berry
-      - run: yarn --ignore-scripts
+      - run: yarn
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
       - run: yarn build
