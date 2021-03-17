@@ -139,6 +139,7 @@ export interface SkinCape {
 
 export interface SkinData {
   id: string,
+  playFabId: string,
   color: string,
   resourcePatch: Buffer,
   image: SkinImage,

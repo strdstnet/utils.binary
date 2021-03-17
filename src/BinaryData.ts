@@ -178,6 +178,7 @@ export class BinaryData extends BData {
 
   public writeSkin(skin: SkinData): void {
     this.writeString(skin.id)
+    this.writeString(skin.playFabId)
     // this.writeString(skin.resourcePatch)
     this.appendWithLength(skin.resourcePatch)
     this.writeSkinImage(skin.image)
