@@ -20,6 +20,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
       - run: yarn build
-      - run: yarn publish --new-version ${{ github.event.release.tag_name }} --no-git-tag-version
+      - run: yarn npm publish --tag ${{ github.event.release.tag_name }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
