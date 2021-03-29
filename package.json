@@ -2,7 +2,7 @@
   "name": "@strdstnet/utils.binary",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "scripts": {
     "build": "rm -rf lib && tsc",
     "release": "yarn version patch && git add . && git commit -m $(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g') && git push"
