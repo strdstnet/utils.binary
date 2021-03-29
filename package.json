@@ -1,7 +1,8 @@
 {
   "name": "@strdstnet/utils.binary",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main_": "lib/index.js",
+  "types_": "lib/index.d.ts",
+  "main": "src/index.ts",
   "version": "1.1.11",
   "scripts": {
     "build": "rm -rf lib && tsc",
@@ -21,8 +22,5 @@
     "@strdst/utils.binary": "^1.0.9",
     "@strdst/utils.nbt": "^1.0.2",
     "uuid": "^8.3.0"
-  },
-  "peerDependencies": {
-    "@strdstnet/utils.binary": "^1.1.9"
   }
 }
