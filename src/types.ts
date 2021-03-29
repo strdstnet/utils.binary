@@ -69,6 +69,7 @@ export enum MetadataGeneric {
   SNEAKING            = 1,
   SPRINTING           = 3,
   IMMOBILE            = 16,
+  CAN_CLIMB           = 19,
   CAN_FLY             = 21,
   HAS_COLLISION       = 47,
   AFFECTED_BY_GRAVITY = 48,
