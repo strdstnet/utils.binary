@@ -3,8 +3,9 @@ import {
 } from '@strdst/utils.binary'
 import { CompoundTag, IntTag } from '@strdst/utils.nbt'
 import { ItemRuntimes } from './data/ItemRuntimes'
+import { BlockRuntimes } from './data/BlockRuntimes'
 import { Metadata } from './Metadata'
-import { IChunk, IExperiments, IItem, ISubChunk, ItemIsDurable, MAGIC, MetadataType, Namespaced, SkinData, SkinImage, TileIsSpawnable, TileTag } from './types'
+import { IBlock, IChunk, IExperiments, IItem, IItemStack, ISubChunk, ItemIsDurable, MAGIC, MetadataType, Namespaced, SkinData, SkinImage, TileIsSpawnable, TileTag } from './types'
 
 export const DataLengthsMc = {
   ...DLengths,
@@ -27,20 +28,27 @@ export class BinaryData extends BData {
     return buf.toString('binary') as (typeof MAGIC)
   }
 
-  public readSecuity(): void {
+  public readSecurity(): void {
     this.pos += DataLengthsMc.SECURITY
   }
 
-  public writeContainerItem(item: IItem): void {
-    this.writeVarInt(ItemRuntimes.getRID(item.nid))
-    if(item.nid === Namespaced.AIR) return
+  public writeItemStack(stack: IItemStack, writeStackId = true): void {
+    this.writeVarInt(stack.item.rid)
+    if(stack.empty) return
 
-    const auxValue = ((item.meta & 0x7fff) << 8) | item.count
-    this.writeVarInt(auxValue)
+    this.writeLShort(stack.count)
+    this.writeVarInt(stack.item.meta)
 
-    let tag = item.nbt ? item.nbt.clone() : null
+    if(writeStackId) {
+      this.writeBoolean(stack.id >= 0)
+      if(stack.id >= 0) this.writeVarInt(stack.id)
+    }
 
-    if(item[ItemIsDurable] && item.damage > 0) {
+    this.writeVarInt(stack.item.block.rid)
+
+    let tag = stack.item.nbt ? stack.item.nbt.clone() : null
+
+    if(stack.item[ItemIsDurable] && stack.item.meta > 0) {
       if(tag) {
         const existing = tag.get('Damage')
 
@@ -51,62 +59,91 @@ export class BinaryData extends BData {
         tag = new CompoundTag()
       }
 
-      tag.add(new IntTag().assign('Damage', item.damage))
+      tag.add(new IntTag().assign('Damage', stack.item.meta))
     }
+
+    const nbt = new BinaryData()
 
     if(tag) {
-      this.writeLShort(0xffff)
-      this.writeByte(1)
-      this.writeTag(tag)
+      nbt.writeLShort(0xffff)
+      nbt.writeByte(1)
+      nbt.writeTag(tag)
     } else {
-      this.writeLShort(0)
+      nbt.writeLShort(0)
     }
 
-    this.writeVarInt(0) // CanPlaceOn
-    this.writeVarInt(0) // CanDestroy
+    nbt.writeLInt(0) // CanPlaceOn
+    nbt.writeLInt(0) // CanDestroy
 
-    if(item.nid === Namespaced.SHIELD) {
-      this.writeVarLong(0n) // blocking tick
+    if(stack.item.nid === Namespaced.SHIELD) {
+      nbt.writeLLong(0n) // blocking tick
     }
+
+    this.writeUnsignedVarInt(nbt.length)
+    this.append(nbt)
   }
 
-  public readContainerItem(): IItem {
+  public readItemStack(readStackId = true): IItemStack {
     const rid = this.readVarInt()
+
+    const block: IBlock = {
+      rid,
+      nid: BlockRuntimes.getNID(rid),
+      meta: 0,
+    }
 
     const item: IItem = {
       nid: ItemRuntimes.getNID(rid),
       rid,
       meta: 0,
-      count: 1,
+      block,
       [ItemIsDurable]: false,
-      damage: 0,
     }
 
-    if(item.nid === Namespaced.AIR) return item
-
-    const auxValue = this.readVarInt()
-    item.meta = auxValue >> 8
-    item.count = auxValue & 0xff
-
-    if(this.readLShort() === 0xffff) {
-      const nbtVersion = this.readByte()
-
-      item.nbt = this.readTag<CompoundTag>(nbtVersion)
+    const stack: IItemStack = {
+      id: -1,
+      item: item,
+      count: 1,
+      maxCount: 64,
+      empty: item.nid === Namespaced.AIR,
     }
 
-    for(let i = 0, c = this.readVarInt(); i < c; i++) {
-      this.readString() // CanPlaceOn
+    if(item.nid === Namespaced.AIR) return stack
+
+    stack.count = this.readLShort()
+
+    const meta = this.readVarInt()
+    item.meta = meta
+    block.meta = meta
+
+    if(readStackId) {
+      const hasStack = this.readBoolean()
+      if(hasStack) stack.id = this.readVarInt()
     }
 
-    for(let i = 0, c = this.readVarInt(); i < c; i++) {
-      this.readString() // CanDestroy
+    block.rid = this.readVarInt()
+
+    const nbt = new BinaryData(this.read(this.readUnsignedVarInt()))
+
+    if(nbt.readLShort() === 0xffff) {
+      const nbtVersion = nbt.readByte()
+
+      item.nbt = nbt.readTag<CompoundTag>(nbtVersion)
+    }
+
+    for(let i = 0, c = nbt.readVarInt(); i < c; i++) {
+      nbt.readString() // CanPlaceOn
+    }
+
+    for(let i = 0, c = nbt.readVarInt(); i < c; i++) {
+      nbt.readString() // CanDestroy
     }
 
     if(item.nid === Namespaced.SHIELD) {
-      this.readVarLong() // blocking tick
+      nbt.readVarLong() // blocking tick
     }
 
-    return item
+    return stack
   }
 
   public writeEntityMetadata(metadata: Metadata): void {

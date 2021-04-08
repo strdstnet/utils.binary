@@ -5,14 +5,27 @@ export const MAGIC = '\x00\xff\xff\x00\xfe\xfe\xfe\xfe\xfd\xfd\xfd\xfd\x12\x34\x
 
 export const ItemIsDurable = '__durable'
 
+export interface IBlock {
+  rid: number,
+  nid: string,
+  meta: number,
+}
+
 export interface IItem {
   [ItemIsDurable]: boolean,
   nid: string,
   rid: number,
+  block: IBlock,
   meta: number,
-  count: number,
   nbt?: CompoundTag,
-  damage: number, // TODO: ehhhh, technically `damage` is always `meta`
+}
+
+export interface IItemStack {
+  id: number,
+  item: IItem,
+  count: number,
+  maxCount: number,
+  empty: boolean,
 }
 
 /**
